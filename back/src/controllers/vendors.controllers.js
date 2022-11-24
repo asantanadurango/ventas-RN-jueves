@@ -8,8 +8,13 @@ export const register = async (req, res) => {
     } = req.body
 
     try {
-        const vendor = await VendorModel({ name, email, total }).save()
-        return res.json({res:vendor}) 
+        const registeredUser = await VendorModel.findOne({ email }).lean()
+        if (registeredUser) return res.json({ error:true, message: 'Este usuario ya se encuentra registrado en la DB' })
+        
+        await VendorModel({ name, email, total }).save()
+        const vendor = await VendorModel.exists({ email })
+        vendor.message = 'Usuario creado con exito!'
+        return res.json(vendor) 
     } catch (error) {
         return res.json({error})
     }
@@ -19,36 +24,19 @@ export const searchById = async (req, res) => {
     const { id } = req.params
     console.log(id);
     try {
+        const vendorFound = await VendorModel.findById(id)
+        if(!vendorFound) return res.json({error:true, message:'Este usuario no esta registrado en la DB'})
+        
         const vendor = await VendorModel.findById(id)
-        return res.json({res:vendor})
-    } catch (error) {
-        return res.json({error})
+            .select({ email: 1, name: 1, _id: 0 }).lean()
+        return res.json({...vendor, message:'Usuario encontrado'})
+    } catch (err) {
+        return res.json({...err, error:true, message:'Este usuario no esta registrado en la DB'})
     }
 };
 
-export const salesByVendorId = async (req, res) => {
-
-  
+export const vendorSales = async (req, res) => {
+    const {id} = req.params
+    const vendorSales = await VendorModel.findById(id).select({ '_id': 0 }).lean()
+    res.json(vendorSales)
 };
-// const { id, name } = req.params
-// console.log(id);
-
-// const paths = await VendorModel.find().getPopulatedPaths()
-// console.log(paths);
-
-// const vendor = await VendorModel.findOne({ name }).populate('vendor_id')
-// console.log(vendor);
-
-// const boo = await new VendorModel({}).populated('vendor_id')
-// console.log(boo);
-
-
-// res.json({res:'Ñeeeee'})
-
-
-// try {
-//     const vendorSales = await VendorModel.findById(id).populate('vendor_id').exec()
-//     return res.json({res:vendorSales})
-// } catch (error) {
-//     return res.json({error})
-// }

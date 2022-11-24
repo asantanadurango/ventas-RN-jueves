@@ -6,14 +6,16 @@ import { connection } from './db/dbConecction.js';
 const app = express()
 import {vendorRouter}from './routes/vendors.routes.js'
 import {saleRouter}from './routes/sales.routes.js'
+import { clear } from './controllers/db.controllers.js';
 
 connection()
     .then(()=>console.log('conectado a la db'))
-    .catch(err => console.log(err))
+    .catch(error => console.log(error))
 app.use(cors())
 app.use(express.json())
 app.use(vendorRouter)
 app.use(saleRouter)
+app.get('/api/db/clear', clear)
 
 
 

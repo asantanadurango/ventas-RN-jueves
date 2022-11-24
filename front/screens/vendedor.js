@@ -4,38 +4,67 @@ import {
     TextInput,
     TouchableOpacity,
   } from "react-native";
-  import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export function VendedorScreen({ styles }) {
-    const [vendedor, setVendedor] = useState({});
+  const [vendedor, setVendedor] = useState({});
   
-    const createVendedor = () => {
-      const { name, email, total } = vendedor;
-      if ([name, email, total].some((key) => !key)) {
-        alert("name, email y total son requeridos");
+    const createVendedor = async () => {
+      const { name, email } = vendedor;
+      if ([name, email].some((key) => !key)) {
+        alert("name, email y son requeridos");
         return;
       }
-      fetch("http://localhost:8080/api/vendors", {
+    try {
+      const req = await fetch("http://localhost:8080/api/vendors", {
         method: "POST",
         body: JSON.stringify(vendedor),
         headers: {
           "Content-Type": "application/json",
         },
       })
-        .then((res) => res.json())
-        .then(console.log)
-        .catch((err) => console.error(err));
-    };
+        
+      const res = await req.json()
+      console.log(res)
+        
+      if (res.error) {
+        alert(res.message)
+        setVendedor({})
+        return;
+      }
   
-    const searchVendedor = () => {
-      const { id } = vendedor;
+      alert(res.message)
+      localStorage.setItem('_id', res._id)
+      setVendedor({id:res._id})
+    } catch (error) {
+      console.log('Error inesperado');
+      throw (error)
+    }      
+  };
+  
+  const searchVendedorById = async () => {
+    console.log(vendedor);
+    const idByLocalStorage = localStorage.getItem('_id')
+    const id = vendedor?.id || idByLocalStorage
       if (!id) {
         alert("Ingrese un id");
         return;
       }
       fetch(`http://localhost:8080/api/vendors/${id}`)
         .then((res) => res.json())
-        .then(console.log)
+        .then(res => {
+          console.log(res);
+          if (res.error) {
+            alert(res.message)
+            setVendedor({})
+            return 
+          }
+          
+          const {name, email}= res
+          alert(`Bienvenido ${name}`)
+          setVendedor({name, email, id: localStorage.getItem('_id')})
+          console.log(res)
+        })
         .catch((err) => console.error(err));
     };
   
@@ -54,16 +83,15 @@ export function VendedorScreen({ styles }) {
       {
         placeholder: "Ingrese email",
         nameId: "email",
-      },
-      {
-        placeholder: "Ingrese comision",
-        nameId: "total",
-      },
-    ];
+      }
+  ];
   
-    useEffect(() => {
-      // console.log(vendedor);
-    }, [vendedor]);
+  useEffect(() => {
+
+    localStorage.clear()
+    setVendedor({ id: localStorage.getItem('_id') })
+    console.log('vendedor');
+  },[])
   
     return (
       <View style={styles.container}>
@@ -73,9 +101,11 @@ export function VendedorScreen({ styles }) {
             padding: 24,
             justifyContent: "center",
             alignItems: "center",
+            textAlign:'center'
           }}
         >
           <Text>Vendedor</Text>
+          
           <View style={{ marginBottom: 10 }}>
             {inputs.map((obj) => (
               <TextInput
@@ -90,7 +120,7 @@ export function VendedorScreen({ styles }) {
           </View>
           <TouchableOpacity
             style={[styles.buttons, { backgroundColor: "green" }]}
-            onPress={searchVendedor}
+            onPress={searchVendedorById}
           >
             <Text style={{ color: "yellow" }}>Buscar por Id</Text>
           </TouchableOpacity>

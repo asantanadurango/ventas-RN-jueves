@@ -7,11 +7,15 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { VendedorScreen } from './screens/vendedor.js'
 import { VentaScreen } from './screens/ventas.js';
+import { ListaScreen } from './screens/lista.js';
+import { useEffect } from 'react';
+import {clearDatabase} from './initialized.js'
 
 const Tab = createBottomTabNavigator();
 
 const VendedorScreenTab =()=> <VendedorScreen styles={styles} />
-const VentaScreenaTab  =()=> <VentaScreen styles={styles} />
+const VentaScreenTab = () => <VentaScreen styles={styles} />
+const ListaScreenTab = () => <ListaScreen styles={styles} />  
 function HomeTabs() {
   return (
     <Tab.Navigator
@@ -20,7 +24,8 @@ function HomeTabs() {
       }}
     >
       <Tab.Screen name="Vendedor" component={VendedorScreenTab} />
-      <Tab.Screen name="Ventas" component={VentaScreenaTab} />
+      <Tab.Screen name="Ventas" component={VentaScreenTab} />
+      <Tab.Screen name="Lista" component={ListaScreenTab} />
     </Tab.Navigator>
   );
 }
@@ -28,6 +33,14 @@ function HomeTabs() {
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+
+  useEffect(() => {
+    clearDatabase()
+      .then(res => console.log(res))
+      .catch(error => console.log(error))
+    console.log('app');
+  })
+
   return (
     <NavigationContainer>
       <Stack.Navigator>
@@ -47,6 +60,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
+    textAlign:'center'
   },
   buttons: {
     borderRadius: 10,
@@ -65,5 +79,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     padding: 5,
     width: 200,
+    color: 'black',
+    backgroundColor: 'white',
+    height:30
   },
 });
